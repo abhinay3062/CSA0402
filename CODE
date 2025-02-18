@@ -1,0 +1,64 @@
+import numpy as np
+import pandas as pd
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+import random
+
+# Simulate synthetic process data (features and labels)
+# Features: [CPU usage (%), Memory usage (MB), Execution time (s)]
+# Priority: [0 = Low, 1 = Medium, 2 = High]
+def generate_synthetic_data(num_samples=1000):
+    data = []
+    labels = []
+    
+    for _ in range(num_samples):
+        cpu_usage = random.uniform(0, 100)  # Random CPU usage between 0% and 100%
+        mem_usage = random.uniform(0, 4096)  # Random memory usage in MB
+        exec_time = random.uniform(1, 300)  # Random execution time in seconds
+        
+        # Simple heuristic for generating priority
+        # This is where we simulate the dynamic prioritization logic
+        if cpu_usage > 80 or mem_usage > 3000:
+            priority = 2  # High priority for heavy resource usage
+        elif cpu_usage > 50 or mem_usage > 1500:
+            priority = 1  # Medium priority for moderate resource usage
+        else:
+            priority = 0  # Low priority for light resource usage
+        
+        data.append([cpu_usage, mem_usage, exec_time])
+        labels.append(priority)
+    
+    return np.array(data), np.array(labels)
+
+# Generate synthetic data
+X, y = generate_synthetic_data()
+
+# Split data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Train a Random Forest classifier on the data
+classifier = RandomForestClassifier(n_estimators=100, random_state=42)
+classifier.fit(X_train, y_train)
+
+# Predict priorities for the test set
+y_pred = classifier.predict(X_test)
+
+# Evaluate the model
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Accuracy of process priority prediction: {accuracy * 100:.2f}%")
+
+# Simulate dynamic process prioritization (example usage with a new process)
+def predict_process_priority(cpu_usage, mem_usage, exec_time):
+    features = np.array([[cpu_usage, mem_usage, exec_time]])
+    predicted_priority = classifier.predict(features)
+    return predicted_priority[0]
+
+# Example new process with CPU usage 70%, memory 2000MB, and execution time 120 seconds
+cpu_usage = 70
+mem_usage = 2000
+exec_time = 120
+
+predicted_priority = predict_process_priority(cpu_usage, mem_usage, exec_time)
+priority_labels = {0: "Low", 1: "Medium", 2: "High"}
+print(f"Predicted priority for the process: {priority_labels[predicted_priority]}")
